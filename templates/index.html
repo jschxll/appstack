@@ -1,0 +1,152 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="csrf-token" content="{{ csrf_token }}" />
+    <title>Services | jschall</title>
+
+    <link rel="stylesheet" type="text/css" href="{% static 'styles.css' %}" />
+  </head>
+  <body>
+    <div id="new-application-container">
+      <div id="new-application-header">
+        <h3>Add new application</h3>
+        <img
+          class="close-button"
+          src="{% static '/img/close_button.svg' %}"
+          width="24px"
+          height="24px"
+          onclick="toggleApplicationWindow()"
+        />
+      </div>
+      <form class="input-fields-application">
+        <div class="form-group textfield-group">
+          <label for="application_name">Application Name</label>
+          <input
+            class="application-form"
+            id="application_name"
+            type="text"
+            placeholder="Enter application name"
+            name="application-name"
+            required
+          />
+        </div>
+
+        <div class="form-group textfield-group">
+          <label for="application_host">IP Address and Port</label>
+          <input
+            class="application-form"
+            id="application_host"
+            type="text"
+            placeholder="IP-Address:Port"
+            required
+          />
+        </div>
+
+        <div class="form-group checkbox-group">
+          <input type="checkbox" id="https_checkbox" name="https_checkbox" />
+          <label for="https_checkbox">HTTPS</label>
+        </div>
+
+        <div class="form-group">
+          <label for="application_icon">Application Icon</label>
+          <input
+            id="application_icon"
+            type="file"
+            accept=".jpg, .png, .svg"
+            required
+          />
+        </div>
+
+        <div class="form-group checkbox-group">
+          <input
+            type="checkbox"
+            id="reverse_proxy_checkbox"
+            name="reverse_proxy_checkbox"
+          />
+          <label for="reverse_proxy_checkbox">Use Reverse Proxy</label>
+        </div>
+
+        <div class="form-group">
+          <button
+            class="submit-btn"
+            type="button"
+            onclick="uploadApplicationProps(event)"
+          >
+            Submit
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Settings slide menu -->
+    <div id="settings-menu">
+      <div class="slide">
+        <ul>
+          <li>
+            <span
+              class="settings-items"
+              id="add-application-link"
+              onclick="toggleApplicationWindow()"
+              >Add Application</span
+            >
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <nav class="navbar">
+      <div class="settings-button" onclick="toggleSettingsMenu(this)">
+        <div class="bar1"></div>
+        <div class="bar2"></div>
+        <div class="bar3"></div>
+      </div>
+      <h2>Welcome back, Jan!</h2>
+    </nav>
+
+    <div class="system-info-container">
+      <h3>System Information</h3>
+      <div class="cpu">
+        <span id="cpu-usage"></span>
+        <br />
+        <span id="cpu-temp"></span>
+        <br />
+        <span id="physical-cores"></span>
+      </div>
+      <div class="disk">
+        <span id="memory-usage"></span>
+        <!-- used_mem / total_mem  mem_percent -->
+        <br />
+        <span id="disk-usage"></span>
+        <!-- used_disk / total_disk disk_percent (free: free_disk) -->
+      </div>
+      <span id="uptime"></span>
+    </div>
+
+    <section class="application-section">
+      {% if applications %}
+      <ul>
+        {% for app in applications %}
+        <li>
+          <div class="application-container">
+            <img src="{{ app.icon }}" width="40" height="40" />
+            <!-- TODO: Add protocol chooser for http / https -->
+            <h3>
+              <a href="http://{{ app.ip_address }}:{{ app.port }}"
+                >{{ app.name }}</a
+              >
+            </h3>
+          </div>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p>No applications are available.</p>
+      {% endif %}
+    </section>
+
+    <script src="{% static 'main.js' %}"></script>
+  </body>
+</html>

@@ -1,0 +1,5 @@
+Django>=3.2,<4.0
+psutil
+channels_redis
+channels[daphne]
+Pillow

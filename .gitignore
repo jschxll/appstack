@@ -1,0 +1,7 @@
+**/__pycache__/
+/media
+/Scripts
+dashboard.tar
+/db.sqlite3
+pyvenv.cfg
+/Lib

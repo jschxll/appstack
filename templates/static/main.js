@@ -1,0 +1,97 @@
+"use strict";
+
+function toggleSettingsMenu(button) {
+  const menu = document.getElementById("settings-menu");
+  menu.classList.toggle("show");
+  button.classList.toggle("change");
+}
+
+const socket = new WebSocket(`ws://${window.location.host}/ws/system-info/`);
+
+const systemInfoElements = {
+  cpu_temp: document.getElementById("cpu-temp"),
+  cpu_usage: document.getElementById("cpu-usage"),
+  physical_cores: document.getElementById("physical-cores"),
+  memory_usage: document.getElementById("memory-usage"),
+  disk_usage: document.getElementById("disk-usage"),
+  uptime: document.getElementById("uptime"),
+};
+
+const updateSystemInfo = (data) => {
+  const cpu = data["cpu"];
+  const disk = data["disk"];
+
+  if (systemInfoElements.cpu_usage && cpu) {
+    systemInfoElements.cpu_usage.innerText = `CPU Usage: ${cpu["usage"]}%`;
+  }
+  if (systemInfoElements.cpu_temp && cpu) {
+    systemInfoElements.cpu_temp.innerText = `CPU Temperature: ${cpu["temp"]}°C`;
+  }
+  if (systemInfoElements.physical_cores && cpu) {
+    systemInfoElements.physical_cores.innerText = `CPU cores: ${cpu["physical_cores"]}`;
+  }
+  if (systemInfoElements.memory_usage && disk) {
+    systemInfoElements.memory_usage.innerText = `RAM: ${disk["used_mem"]}GB / ${disk["total_mem"]}GB\t${disk["mem_percent"]}%`;
+  }
+  if (systemInfoElements.disk_usage && disk) {
+    systemInfoElements.disk_usage.innerText = `Disk Usage: ${disk["used_disk"]}GB / ${disk["total_disk"]}GB\t${disk["disk_percent"]}% (free: ${disk["free_disk"]}GB)`;
+  }
+  if (systemInfoElements.uptime && data["uptime"]) {
+    systemInfoElements.uptime.innerText = `Up for ${data["uptime"]}h`;
+  }
+};
+
+socket.onmessage = function (event) {
+  const data = JSON.parse(event.data);
+  updateSystemInfo(data);
+};
+
+socket.onopen = function (event) {
+  console.log("WebSocket is open now.");
+};
+
+socket.onclose = function (event) {
+  console.log("WebSocket is closed now.");
+};
+
+async function uploadApplicationProps(event) {
+  event.preventDefault();
+
+  let formData = new FormData();
+  const applicationProps = document.getElementsByClassName("application-form");
+  const csrfToken = document
+    .querySelector("meta[name='csrf-token']")
+    .getAttribute("content");
+
+  for (let prop of applicationProps) {
+    formData.append(prop.id, prop.value);
+  }
+
+  formData.append(
+    "application_icon",
+    document.getElementById("application_icon").files[0]
+  );
+  try {
+    const response = await fetch("/upload/", {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": csrfToken,
+      },
+      body: formData,
+    });
+
+    if (response.ok) {
+      alert("File uploaded successfully!");
+    } else {
+      alert("Failed upload the file.");
+    }
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+function toggleApplicationWindow() {
+  let settingsLink = document.getElementById("new-application-container");
+  if (settingsLink.style.display == "flex") settingsLink.style.display = "none";
+  else settingsLink.style.display = "flex";
+}
