@@ -17,7 +17,7 @@ def get_system_info():
     free_disk = round(disk.free / 1_000_000_000, 2)
     disk_percent = disk.percent
 
-    cpu_temp = str(psutil.sensors_temperatures()["cpu_thermal"][0]).replace(",", " ") if hasattr(psutil, "sensors_temperatures") else None
+    cpu_temp = psutil.sensors_temperatures()["cpu_thermal"][0].current if hasattr(psutil, "sensors_temperatures") else None
     
     uptime = dt.datetime.now() - dt.datetime.fromtimestamp(psutil.boot_time())
     uptime = str(uptime).split(".")[0]

@@ -5,6 +5,8 @@ class Application(models.Model):
     ip_address = models.GenericIPAddressField(protocol="ipv4", unpack_ipv4=False, default="127.0.0.1")
     port = models.IntegerField()
     icon = models.FilePathField()
+    https = models.BooleanField(default=False)
+    use_reverse_proxy = models.BooleanField(default=False)
 
     def __str__(self) -> str:
-        return f"{self.name} {self.ip_address}:{self.port} {self.icon}"
+        return f"name={self.name} https={self.https} ip={self.ip_address}:{self.port} icon_path={self.icon}"

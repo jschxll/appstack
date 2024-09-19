@@ -5,7 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="csrf-token" content="{{ csrf_token }}" />
-    <title>Services | jschall</title>
+    <title>{{ dashboard_env.dashboard_title }}</title>
 
     <link rel="stylesheet" type="text/css" href="{% static 'styles.css' %}" />
   </head>
@@ -21,6 +21,7 @@
           onclick="toggleApplicationWindow()"
         />
       </div>
+
       <form class="input-fields-application">
         <div class="form-group textfield-group">
           <label for="application_name">Application Name</label>
@@ -44,9 +45,13 @@
             required
           />
         </div>
-
         <div class="form-group checkbox-group">
-          <input type="checkbox" id="https_checkbox" name="https_checkbox" />
+          <input
+            type="checkbox"
+            class="checkbox"
+            id="https"
+            name="https_checkbox"
+          />
           <label for="https_checkbox">HTTPS</label>
         </div>
 
@@ -63,7 +68,8 @@
         <div class="form-group checkbox-group">
           <input
             type="checkbox"
-            id="reverse_proxy_checkbox"
+            class="checkbox"
+            id="use_reverse_proxy"
             name="reverse_proxy_checkbox"
           />
           <label for="reverse_proxy_checkbox">Use Reverse Proxy</label>
@@ -103,50 +109,72 @@
         <div class="bar2"></div>
         <div class="bar3"></div>
       </div>
-      <h2>Welcome back, Jan!</h2>
+      <h2>{{ dashboard_env.dashboard_header }}</h2>
+      <img
+        id="theme-button"
+        src="{% static '/img/theme_button.svg' %}"
+        onclick="changeTheme(this)"
+      />
     </nav>
 
-    <div class="system-info-container">
-      <h3>System Information</h3>
-      <div class="cpu">
-        <span id="cpu-usage"></span>
-        <br />
-        <span id="cpu-temp"></span>
-        <br />
-        <span id="physical-cores"></span>
+    <main>
+      <div class="system-info-container">
+        <h3>System Information</h3>
+        <div class="cpu">
+          <span id="cpu-usage"></span>
+          <br />
+          <span id="cpu-temp"></span>
+          <br />
+          <span id="physical-cores"></span>
+        </div>
+        <div class="disk">
+          <span id="memory-usage"></span>
+          <!-- used_mem / total_mem  mem_percent -->
+          <br />
+          <span id="disk-usage"></span>
+          <!-- used_disk / total_disk disk_percent (free: free_disk) -->
+        </div>
+        <span id="uptime"></span>
       </div>
-      <div class="disk">
-        <span id="memory-usage"></span>
-        <!-- used_mem / total_mem  mem_percent -->
-        <br />
-        <span id="disk-usage"></span>
-        <!-- used_disk / total_disk disk_percent (free: free_disk) -->
-      </div>
-      <span id="uptime"></span>
-    </div>
 
-    <section class="application-section">
-      {% if applications %}
-      <ul>
-        {% for app in applications %}
-        <li>
-          <div class="application-container">
-            <img src="{{ app.icon }}" width="40" height="40" />
-            <!-- TODO: Add protocol chooser for http / https -->
-            <h3>
-              <a href="http://{{ app.ip_address }}:{{ app.port }}"
-                >{{ app.name }}</a
-              >
-            </h3>
-          </div>
-        </li>
-        {% endfor %}
-      </ul>
-      {% else %}
-      <p>No applications are available.</p>
-      {% endif %}
-    </section>
-
+      <section class="application-section">
+        {% if applications %}
+        <ul>
+          {% for app in applications %}
+          <li>
+            <div class="application-container" id="{{ app.name }}">
+              <img src="{{ app.icon }}" width="40" height="40" />
+              {% if app.https %}
+              <img class="https-icon" src="{% static '/img/https_on.svg' %}" />
+              <h3>
+                <a
+                  class="application-name-header"
+                  href="https://{{ app.ip_address }}:{{ app.port }}"
+                >
+                  {{ app.name }}
+                </a>
+              </h3>
+              {% else %}
+              <img class="https-icon" src="{% static '/img/https_off.svg' %}" />
+              <h3>
+                <a
+                  class="application-name-header"
+                  href="http://{{ app.ip_address }}:{{ app.port }}"
+                >
+                  {{ app.name }}
+                </a>
+              </h3>
+              {% endif %}
+              <span class="online-status"></span>
+            </div>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <p>No applications are available.</p>
+        {% endif %}
+      </section>
+    </main>
     <script src="{% static 'main.js' %}"></script>
   </body>
 </html>

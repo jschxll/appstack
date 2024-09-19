@@ -3,3 +3,4 @@ psutil
 channels_redis
 channels[daphne]
 Pillow
+aiohttp

@@ -1,10 +1,29 @@
+:root {
+  --bg: #1c1e21;
+  --text-color: #fff;
+  --nav-color: #206ea7;
+  --settings-menu-bg: #222428;
+  --application-bg: #181a1d;
+  --apppication-header-color: #fff;
+  --https-status-color: #fff;
+}
+
+.light {
+  --bg: #f5f5f5;
+  --settings-menu-bg: #fff;
+  --text-color: #000;
+  --application-bg: #fff;
+  --apppication-header-color: #000;
+  --https-status-color: #000;
+}
+
 @font-face {
   font-family: Roboto;
   src: url("./fonts/Roboto-Regular.ttf");
 }
 
 body {
-  background-color: #1c1e21;
+  background-color: var(--bg);
   font-family: Roboto;
   color: #fff;
   margin: 0;
@@ -13,6 +32,7 @@ body {
 .settings-button {
   display: inline-block;
   cursor: pointer;
+  z-index: 2;
 }
 
 .bar1,
@@ -54,12 +74,14 @@ body {
   left: -220px;
   height: 100%;
   width: 220px;
-  background-color: #222428;
+  background-color: var(--settings-menu-bg);
   transition: transform 0.5s ease;
+  z-index: 2;
 }
 
 .settings-items {
   cursor: pointer;
+  color: var(--text-color);
 }
 
 #settings-menu.show {
@@ -88,14 +110,87 @@ a {
   background-color: rgba(0, 0, 0, 0.268);
   padding: 10px;
   float: left;
+  max-width: fit-content;
 }
 
 .system-info-container h3 {
   color: #fff;
 }
 
-/*------ Application form styling ------ */
+main {
+  display: flex;
+  flex-direction: column;
+}
 
+.application-section li {
+  display: inline-block;
+  margin: 0 1%;
+}
+
+.application-section ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.application-container {
+  display: flex;
+  background-color: var(--application-bg);
+  padding-left: 20px;
+  position: relative;
+  max-width: max-content;
+  align-items: center;
+  padding: 0 10px;
+  border-radius: 5px;
+  min-width: 120px;
+  margin-bottom: 3%;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  z-index: 0;
+}
+
+.application-container img {
+  pointer-events: none;
+}
+
+.https-icon {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  padding: 4px;
+}
+
+.online-status {
+  border-radius: 50%;
+  width: 10px;
+  height: 10px;
+}
+
+.application-name-header {
+  text-decoration: none;
+  color: var(--apppication-header-color);
+}
+
+.application-name-header:hover {
+  text-decoration: underline;
+}
+
+#theme-button {
+  cursor: pointer;
+  -webkit-transform: rotate(180deg);
+  -moz-transform: rotate(180deg);
+  -o-transform: rotate(180deg);
+  -ms-transform: rotate(180deg);
+  transform: rotate(180deg)
+}
+
+#theme-button.light {
+  -webkit-transform: rotate(360deg);
+  -moz-transform: rotate(360deg);
+  -o-transform: rotate(360deg);
+  -ms-transform: rotate(360deg);
+  transform: rotate(360deg);
+}
+
+/*------ Application form styling ------ */
 #new-application-container {
   position: fixed;
   display: none;
@@ -111,8 +206,7 @@ a {
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  z-index: 1000;
-  /*overflow-y: auto;*/
+  z-index: 1;
 }
 
 #new-application-header {
@@ -182,7 +276,7 @@ label {
 
 .submit-btn {
   background-color: #007bff;
-  color: #fff;
+  color: var(--text-color);
   padding: 10px 15px;
   border: none;
   border-radius: 4px;
@@ -197,26 +291,6 @@ label {
 
 @media (max-width: 500px) {
   #new-application-container {
-    width: 100%;
     height: auto;
   }
-}
-
-/*------ Application section styling ------*/
-
-.application-section {
-  display: grid;
-}
-
-.application-section ul {
-  list-style-type: none;
-}
-
-.application-container {
-  display: flex;
-  background-color: #181a1d;
-  max-width: max-content;
-  align-items: center;
-  padding: 0 10px;
-  border-radius: 5px;
 }

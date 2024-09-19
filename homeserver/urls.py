@@ -16,10 +16,9 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from . import views
 from django.conf import settings
 from django.conf.urls.static import static
-from dashboard.views import index, upload_icon
+from dashboard.views import *
 urlpatterns = [
     path("", index),
     path("admin/", admin.site.urls),

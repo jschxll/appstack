@@ -8,6 +8,12 @@ from django.http import JsonResponse
 from django.core.files.storage import FileSystemStorage
 from .models import Application
 import socket
+import os
+
+def get_system_vars():
+    dashboard_title = os.getenv("DASHBOARD_TITLE")
+    dashboard_header = os.getenv("DASHBOARD_HEADER")
+    return {"dashboard_title": dashboard_title, "dashboard_header": dashboard_header}
 
 def index(request):
     system_info = get_system_info()
@@ -22,13 +28,17 @@ def index(request):
         }
     )
 
-    # query all added applications from the db
-    applications = Application.objects.order_by("id")
+    # Query all added applications from the db
+    apps = Application.objects.order_by("id")
     context = {
-        "applications": applications,
+        "applications": apps,
+        "dashboard_env": get_system_vars(),
     }
 
     return render(request, "index.html", context)
+
+def convert_to_bool(str_val):
+    return True if str_val == "true" else False
 
 def upload_icon(request):
     if request.method == "POST" and request.FILES["application_icon"]:
@@ -45,11 +55,18 @@ def upload_icon(request):
         # divide port from ip address
         ip_address, port = str(host).split(":")
 
+        """
+        TODO: Get ip address of the server's network config, not the docker's
+        """
         if ip_address == "localhost" or ip_address == "127.0.0.1":
             ip_address = socket.gethostbyname(socket.gethostname())
 
+        # convert string bool value to primitive bool
+        https = convert_to_bool(request_data.get("https"))
+        use_reverse_proxy = convert_to_bool(request_data.get("use_reverse_proxy"))
+
         # Save new application to db
-        app = Application(name=name, ip_address=ip_address, port=port, icon=file_url)
+        app = Application(name=name, ip_address=ip_address, port=port, icon=file_url, https=https, use_reverse_proxy=use_reverse_proxy)
         app.save()
 
         return JsonResponse({"file_url": file_url})
