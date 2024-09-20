@@ -41,16 +41,16 @@ const updateSystemInfo = (data) => {
   }
 };
 
-socket.onmessage = function (event) {
-  const data = JSON.parse(event.data);
+socket.onmessage = (e) => {
+  const data = JSON.parse(e.data);
   updateSystemInfo(data);
 };
 
-socket.onopen = function (event) {
+socket.onopen = () => {
   console.log("WebSocket is open now.");
 };
 
-socket.onclose = function (event) {
+socket.onclose = () => {
   console.log("WebSocket is closed now.");
 };
 
@@ -76,12 +76,10 @@ async function uploadApplicationProps(event) {
     .getAttribute("content");
 
   // Get textbox data
-  for (let prop of applicationProps)
-    formData.append(prop.id, prop.value);
+  for (let prop of applicationProps) formData.append(prop.id, prop.value);
 
   // Get checkbox data (https, reverse proxy)
-  for (let cb of checkBoxData)
-    formData.append(cb.id, cb.checked);
+  for (let cb of checkBoxData) formData.append(cb.id, cb.checked);
 
   formData.append(
     "application_icon",
@@ -118,31 +116,45 @@ function changeTheme(button) {
 
   if (document.body.classList.contains("light"))
     document.body.classList.remove("light");
-  else
-    document.body.classList.add("light");
+  else document.body.classList.add("light");
 }
 
-document.addEventListener("DOMContentLoaded", function() {
-  var appStatusSocket = new WebSocket(`ws://${window.location.host}/ws/application-status/`);
+document.addEventListener("DOMContentLoaded", () => {
+  var appStatusSocket = new WebSocket(
+    `ws://${window.location.host}/ws/application-status/`
+  );
   appStatusSocket.onopen = () => {
     // Send status message
-    appStatusSocket.send(JSON.stringify({
-      "status": 1
-    }));
+    appStatusSocket.send(
+      JSON.stringify({
+        status: 1,
+      })
+    );
   };
 
   // Each application container gets a status light for the online status of their application
   appStatusSocket.onmessage = (e) => {
-    const apps = document.getElementsByClassName("application-container");
     const data = JSON.parse(e.data);
+    Array.from(document.getElementsByClassName("application-container")).forEach((app, index) => {
+      const statusDiv = document.createElement("div");
+      statusDiv.className = "status-div";
 
-    for (let app of apps) {
-      const statusLight = app.lastElementChild;
+      const onlineStatus = document.getElementsByClassName("online-status")[index];
+      const httpsIcon = document.getElementsByClassName("https-icon")[index];
+
+      httpsIcon.classList.toggle("httpsIconStyle");
+
       const online = data[app.id];
-      if (online)
-        statusLight.style.backgroundColor = "#39ff14";
-      else 
-        statusLight.style.backgroundColor = "#ff2f14";
-    }
+      if (online) onlineStatus.style.backgroundColor = "#39ff14";
+      else onlineStatus.style.backgroundColor = "#ff2f14";
+
+      if (httpsIcon) {
+        statusDiv.appendChild(httpsIcon);
+      }
+      if (onlineStatus) {
+        statusDiv.appendChild(onlineStatus);
+      }
+      app.appendChild(statusDiv);
+    });
   };
 });

@@ -151,6 +151,7 @@ main {
   pointer-events: none;
 }
 
+
 .https-icon {
   position: absolute;
   bottom: 0;
@@ -158,10 +159,29 @@ main {
   padding: 4px;
 }
 
+/* Style, if .https-icon is added to status-div container */
+.https-icon.httpsIconStyle {
+  position: relative;
+  bottom: initial;
+  left: initial;
+  padding: initial;
+}
+
 .online-status {
   border-radius: 50%;
+  display: inline-block;
   width: 10px;
   height: 10px;
+}
+
+.status-div {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  padding: 4px;
+  justify-content: center;
+  align-items: center;
 }
 
 .application-name-header {

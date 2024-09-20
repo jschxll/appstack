@@ -3,7 +3,7 @@ FROM python:3.12
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-RUN apt-get update && apt-get install -y redis-server nginx-core
+RUN apt-get update && apt-get install -y redis-server nginx-core net-tools
 
 WORKDIR /app
 

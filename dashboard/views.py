@@ -40,6 +40,13 @@ def index(request):
 def convert_to_bool(str_val):
     return True if str_val == "true" else False
 
+def get_host_ip():
+    try:
+        host_ip = socket.gethostbyname("host.docker.internal")
+        return host_ip
+    except socket.gaierror:
+        print(socket.gaierror)
+
 def upload_icon(request):
     if request.method == "POST" and request.FILES["application_icon"]:
         request_data = request.POST
@@ -55,15 +62,16 @@ def upload_icon(request):
         # divide port from ip address
         ip_address, port = str(host).split(":")
 
-        """
-        TODO: Get ip address of the server's network config, not the docker's
-        """
         if ip_address == "localhost" or ip_address == "127.0.0.1":
-            ip_address = socket.gethostbyname(socket.gethostname())
+            ip_address = get_host_ip()
 
         # convert string bool value to primitive bool
         https = convert_to_bool(request_data.get("https"))
         use_reverse_proxy = convert_to_bool(request_data.get("use_reverse_proxy"))
+
+        """
+        TODO: Check whether the name of the new app is already taken
+        """
 
         # Save new application to db
         app = Application(name=name, ip_address=ip_address, port=port, icon=file_url, https=https, use_reverse_proxy=use_reverse_proxy)
