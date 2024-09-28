@@ -86,3 +86,23 @@ class ApplicationStatusConsumer(AsyncWebsocketConsumer):
     async def send_statuses(self):
         apps_with_status = await self.get_applications_with_status()
         await self.send(text_data=json.dumps(apps_with_status))
+
+class UpdateApplicationConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        await self.accept()
+        await self.channel_layer.group_add(
+            "update_applications",
+            self.channel_name
+        )
+    
+    async def disconnect(self, code):
+        await self.channel_layer.group_discard(
+            "update_applications",
+            self.channel_name
+        )
+    
+    async def delete_app(self, event):
+        await self.send(text_data=json.dumps({
+            "type": "delete_app",
+            "app_name": event["app_name"]
+        }))

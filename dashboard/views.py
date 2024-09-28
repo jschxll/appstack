@@ -6,9 +6,11 @@ from channels.layers import get_channel_layer
 from .system_info import get_system_info
 from django.http import JsonResponse
 from django.core.files.storage import FileSystemStorage
+from django.views.decorators.http import require_POST
 from .models import Application
 import socket
 import os
+from django.template.loader import render_to_string
 
 def get_system_vars():
     dashboard_title = os.getenv("DASHBOARD_TITLE")
@@ -23,7 +25,7 @@ def index(request):
     async_to_sync(channel_layer.group_send)(
         "system_info",
         {
-            "type": "send_message",
+            "type": "send_periodic_data",
             "data": system_info
         }
     )
@@ -47,8 +49,9 @@ def get_host_ip():
     except socket.gaierror:
         print(socket.gaierror)
 
+@require_POST
 def upload_icon(request):
-    if request.method == "POST" and request.FILES["application_icon"]:
+    if request.FILES["application_icon"]:
         request_data = request.POST
         name = request_data.get("application_name")
         host = request_data.get("application_host")
@@ -65,17 +68,13 @@ def upload_icon(request):
         if ip_address == "localhost" or ip_address == "127.0.0.1":
             ip_address = get_host_ip()
 
-        # convert string bool value to primitive bool
         https = convert_to_bool(request_data.get("https"))
         use_reverse_proxy = convert_to_bool(request_data.get("use_reverse_proxy"))
-
-        """
-        TODO: Check whether the name of the new app is already taken
-        """
 
         # Save new application to db
         app = Application(name=name, ip_address=ip_address, port=port, icon=file_url, https=https, use_reverse_proxy=use_reverse_proxy)
         app.save()
-
-        return JsonResponse({"file_url": file_url})
+        
+        rendered_html = render_to_string("app_card.html", {"app": app})
+        return JsonResponse({"html": rendered_html})
     return JsonResponse({"error": "Invalid request. Only POST requests are possible"}, status=400)

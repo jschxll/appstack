@@ -104,12 +104,14 @@
     </div>
 
     <nav class="navbar">
-      <div class="settings-button" onclick="toggleSettingsMenu(this)">
-        <div class="bar1"></div>
-        <div class="bar2"></div>
-        <div class="bar3"></div>
+      <div class="header-left">
+        <div class="settings-button" onclick="toggleSettingsMenu(this)">
+          <div class="bar1"></div>
+          <div class="bar2"></div>
+          <div class="bar3"></div>
+        </div>
+        <h2>{{ dashboard_env.dashboard_header }}</h2>
       </div>
-      <h2>{{ dashboard_env.dashboard_header }}</h2>
       <img
         id="theme-button"
         src="{% static '/img/theme_button.svg' %}"
@@ -140,34 +142,8 @@
       <section class="application-section">
         {% if applications %}
         <ul>
-          {% for app in applications %}
-          <li>
-            <div class="application-container" id="{{ app.name }}">
-              <img src="{{ app.icon }}" width="40" height="40" />
-              {% if app.https %}
-              <img class="https-icon" src="{% static '/img/https_on.svg' %}" />
-              <h3>
-                <a
-                  class="application-name-header"
-                  href="https://{{ app.ip_address }}:{{ app.port }}"
-                >
-                  {{ app.name }}
-                </a>
-              </h3>
-              {% else %}
-              <img class="https-icon" src="{% static '/img/https_off.svg' %}" />
-              <h3>
-                <a
-                  class="application-name-header"
-                  href="http://{{ app.ip_address }}:{{ app.port }}"
-                >
-                  {{ app.name }}
-                </a>
-              </h3>
-              {% endif %}
-              <span class="online-status"></span>
-            </div>
-          </li>
+          {% for app in applications %} 
+            {% include 'app_card.html' with app=app index=forloop.counter %} 
           {% endfor %}
         </ul>
         {% else %}

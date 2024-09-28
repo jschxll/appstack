@@ -1,0 +1,55 @@
+{% load static %}
+<li>
+  <div class="application-container" id="{{ app.name }}">
+    <div class="app-icon-container">
+      <img src="{{ app.icon }}" width="40" height="40" />
+    </div>
+    {% if app.https %}
+    <img class="https-icon" src="{% static '/img/https_on.svg' %}" />
+    <h3>
+      <a
+        class="application-name-header"
+        href="https://{{ app.ip_address }}:{{ app.port }}"
+      >
+        {{ app.name }}
+      </a>
+    </h3>
+    {% else %}
+    <img class="https-icon" src="{% static '/img/https_off.svg' %}" />
+    <h3>
+      <a
+        class="application-name-header"
+        href="http://{{ app.ip_address }}:{{ app.port }}"
+      >
+        {{ app.name }}
+      </a>
+    </h3>
+    {% endif %}
+
+    <div class="edit-app-section" id="dropdown-section-{{ index }}">
+      <span
+        class="edit-app-icon"
+        id="edit-app-icon-{{ index }}"
+        onclick="editAppSettings(this)"
+      ></span>
+      <div class="dropdown-content" id="dropdown-content-{{ index }}">
+        <ul>
+          <li
+            title="Edit application"
+            id="edit-app-item"
+            onclick="toggleApplicationWindow()"
+          >
+            <img src="{% static '/img/edit_app.svg' %}" />
+          </li>
+          <li
+            title="Delete Application"
+            onclick="deleteApplication('{{ app.name }}')"
+          >
+            <img src="{% static '/img/delete_app_icon.svg' %}" />
+          </li>
+        </ul>
+      </div>
+    </div>
+    <span class="online-status"></span>
+  </div>
+</li>

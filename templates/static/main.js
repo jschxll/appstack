@@ -65,43 +65,46 @@ function proveInput(elements) {
   return isEmpty;
 }
 
+function getCSRFToken() {
+  const csrfToken = document
+    .querySelector("meta[name='csrf-token']")
+    .getAttribute("content");
+
+  return csrfToken;
+}
+
+function addNewApplicationToDOM(html) {
+  const appSection = document.querySelector(".application-section ul");
+  const newApp = document.createElement("li");
+  newApp.innerHTML = html;
+  appSection.appendChild(newApp);
+}
+
 async function uploadApplicationProps(event) {
   event.preventDefault();
 
   let formData = new FormData();
   const applicationProps = document.getElementsByClassName("application-form");
   const checkBoxData = document.getElementsByClassName("checkbox");
-  const csrfToken = document
-    .querySelector("meta[name='csrf-token']")
-    .getAttribute("content");
+  const csrfToken = getCSRFToken();
 
-  // Get textbox data
   for (let prop of applicationProps) formData.append(prop.id, prop.value);
-
-  // Get checkbox data (https, reverse proxy)
   for (let cb of checkBoxData) formData.append(cb.id, cb.checked);
-
-  formData.append(
-    "application_icon",
-    document.getElementById("application_icon").files[0]
-  );
+  formData.append("application_icon", document.getElementById("application_icon").files[0]);
 
   try {
-    const response = await fetch("/upload/", {
-      method: "POST",
-      headers: {
-        "X-CSRFToken": csrfToken,
-      },
-      body: formData,
-    });
-
-    if (response.ok) {
-      alert("File uploaded successfully!");
-    } else {
-      alert("Failed upload the file.");
-    }
+      const response = await fetch("/upload/", {
+          method: "POST",
+          headers: {
+              "X-CSRFToken": csrfToken,
+          },
+          body: formData,
+      });
+      const data = await response.json();
+      addNewApplicationToDOM(data.html);
+      console.log(data.html);
   } catch (error) {
-    console.log(error);
+      console.log(error);
   }
 }
 
@@ -124,6 +127,9 @@ document.addEventListener("DOMContentLoaded", () => {
     `ws://${window.location.host}/ws/application-status/`
   );
   appStatusSocket.onopen = () => {
+    console.log("opened");
+  };
+  appStatusSocket.onopen = () => {
     // Send status message
     appStatusSocket.send(
       JSON.stringify({
@@ -139,9 +145,10 @@ document.addEventListener("DOMContentLoaded", () => {
       const statusDiv = document.createElement("div");
       statusDiv.className = "status-div";
 
-      const onlineStatus = document.getElementsByClassName("online-status")[index];
+      const onlineStatus =
+        document.getElementsByClassName("online-status")[index];
       const httpsIcon = document.getElementsByClassName("https-icon")[index];
-
+      
       httpsIcon.classList.toggle("httpsIconStyle");
 
       const online = data[app.id];
@@ -154,7 +161,61 @@ document.addEventListener("DOMContentLoaded", () => {
       if (onlineStatus) {
         statusDiv.appendChild(onlineStatus);
       }
+
+      // Add status info to app-icon-container
       app.appendChild(statusDiv);
     });
   };
 });
+
+function editAppSettings(button) {
+  const indexStr = String(button.id);
+  const index = indexStr.substring(indexStr.length - 1);
+  const dropDown = document.getElementById(`dropdown-content-${index}`);
+  if (dropDown.classList.contains("show")) dropDown.classList.remove("show");
+  else dropDown.classList.toggle("show");
+}
+
+function deleteApplication(name) {
+  const appAPI = new AppAPI();
+  appAPI.sendDeleteRequest(name);
+  appAPI.removeFromFrontend();
+}
+
+class AppAPI {
+  alreadyExist(name) {}
+
+  removeFromFrontend() {
+    const updateAppsSocket = new WebSocket(
+      `ws://${window.location.host}/ws/update_applications/`
+    );
+    updateAppsSocket.onmessage = (e) => {
+      const message = JSON.parse(e.data);
+      if (message.type == "delete_app") {
+        const appName = message.app_name;
+        const appElement = document.getElementById(`${appName}`);
+        if (appElement) appElement.remove();
+      }
+    };
+  }
+
+  async sendDeleteRequest(name) {
+    try {
+      var nameAsJson = JSON.stringify({ app_name: name });
+      const response = await fetch("/api/delete_application", {
+        method: "PUT",
+        headers: {
+          "X-CSRFToken": getCSRFToken(),
+        },
+        body: nameAsJson,
+      });
+
+      if (!response.ok) {
+        alert(`Something went wrong. Error:${response.status}`);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }
+  editApplication(appForm) {}
+}

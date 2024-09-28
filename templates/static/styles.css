@@ -59,9 +59,19 @@ body {
 
 .navbar {
   background-color: #206ea7;
-  padding: 5px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 70px;
+}
+
+.header-left {
   display: flex;
   align-items: center;
+}
+
+.header-left > * {
+  margin: 10px;
 }
 
 .navbar > * {
@@ -78,6 +88,12 @@ body {
   transition: transform 0.5s ease;
   z-index: 2;
 }
+
+#settings-menu ul {
+  margin-left: 20px;
+  padding: 0;
+  margin-top: 60px;
+} 
 
 .settings-items {
   cursor: pointer;
@@ -124,7 +140,18 @@ main {
 
 .application-section li {
   display: inline-block;
-  margin: 0 1%;
+  margin: 0 1% 10px;
+}
+
+@media (max-width: 620px) {
+  .application-section ul {
+    display: initial;
+    justify-content: initial;
+  }
+
+  .application-section li {
+    display: grid;
+  }
 }
 
 .application-section ul {
@@ -132,17 +159,24 @@ main {
   padding: 0;
 }
 
+.app-icon-container {
+  position: relative;
+  left: 0;
+  padding: 10px;
+  z-index: 0;
+}
+
 .application-container {
   display: flex;
   background-color: var(--application-bg);
   padding-left: 20px;
   position: relative;
-  max-width: max-content;
-  align-items: center;
-  padding: 0 10px;
+  max-width: min-content;
+  word-wrap: normal;
+  font-size: smaller;
+  padding: 0;
   border-radius: 5px;
-  min-width: 120px;
-  margin-bottom: 3%;
+  min-width: 300px;
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
   z-index: 0;
 }
@@ -151,11 +185,10 @@ main {
   pointer-events: none;
 }
 
-
 .https-icon {
   position: absolute;
   bottom: 0;
-  left: 0;
+  right: 0;
   padding: 4px;
 }
 
@@ -163,7 +196,7 @@ main {
 .https-icon.httpsIconStyle {
   position: relative;
   bottom: initial;
-  left: initial;
+  right: initial;
   padding: initial;
 }
 
@@ -177,7 +210,7 @@ main {
 .status-div {
   position: absolute;
   bottom: 0;
-  left: 0;
+  right: 0;
   display: flex;
   padding: 4px;
   justify-content: center;
@@ -191,6 +224,46 @@ main {
 
 .application-name-header:hover {
   text-decoration: underline;
+}
+
+.edit-app-section {
+  z-index: 1;
+}
+
+.edit-app-icon::after {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  content: '\2807';
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  top: 20px;
+  right: 0;
+  background-color: #f9f9f9;
+  width: 40px;
+  height: fit-content;
+  border-radius: 5px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  justify-content: center;
+}
+
+.dropdown-content.show {
+  display: flex;
+}
+
+.dropdown-content ul {
+  margin: 0 50%;
+}
+
+.dropdown-content li {
+  cursor: pointer;
 }
 
 #theme-button {
