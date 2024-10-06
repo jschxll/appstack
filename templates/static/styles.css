@@ -93,7 +93,7 @@ body {
   margin-left: 20px;
   padding: 0;
   margin-top: 60px;
-} 
+}
 
 .settings-items {
   cursor: pointer;
@@ -160,6 +160,7 @@ main {
 }
 
 .app-icon-container {
+  pointer-events: none;
   position: relative;
   left: 0;
   padding: 10px;
@@ -181,11 +182,8 @@ main {
   z-index: 0;
 }
 
-.application-container img {
-  pointer-events: none;
-}
-
 .https-icon {
+  pointer-events: none;
   position: absolute;
   bottom: 0;
   right: 0;
@@ -236,7 +234,7 @@ main {
   right: 0;
   display: flex;
   justify-content: center;
-  content: '\2807';
+  content: "\2807";
   font-size: 15px;
   cursor: pointer;
 }
@@ -272,7 +270,7 @@ main {
   -moz-transform: rotate(180deg);
   -o-transform: rotate(180deg);
   -ms-transform: rotate(180deg);
-  transform: rotate(180deg)
+  transform: rotate(180deg);
 }
 
 #theme-button.light {
@@ -284,6 +282,7 @@ main {
 }
 
 /*------ Application form styling ------ */
+.edit-application-container,
 #new-application-container {
   position: fixed;
   display: none;
@@ -294,14 +293,16 @@ main {
   height: auto;
   padding: 20px;
   background-color: #f9f9f9;
+  font-size: medium;
   border-radius: 8px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  z-index: 1;
+  z-index: 2;
 }
 
+#application-header,
 #new-application-header {
   display: flex;
   justify-content: space-between;
@@ -317,12 +318,19 @@ h3 {
   color: #333;
 }
 
+.edit-close-button {
+  cursor: pointer;
+  float: right;
+  transition: transform 0.2s ease;
+}
+
 .close-button {
   cursor: pointer;
   float: right;
   transition: transform 0.2s ease;
 }
 
+.edit-close-button:hover,
 .close-button:hover {
   transform: scale(1.1);
 }
@@ -332,6 +340,7 @@ h3 {
   flex-direction: column;
 }
 
+.edit-form-group,
 .form-group {
   margin-bottom: 15px;
   margin-right: 20px;
@@ -343,6 +352,7 @@ label {
   color: #555;
 }
 
+.edit-application-form,
 .application-form {
   width: 100%;
   padding: 10px;
@@ -351,17 +361,34 @@ label {
   font-size: 1em;
 }
 
+#application_name.error,
+#application_host.error {
+  outline: none;
+  border-color: #f31717;
+}
+
+.textfield-group label.error {
+  color: #f31717;
+}
+
+.textfield-group label.reset {
+  color: initial;
+}
+
+.edit-application-form:focus,
 .application-form:focus {
   outline: none;
   border-color: #007bff;
 }
 
+.edit-checkbox-group,
 .checkbox-group {
   display: flex;
   align-items: center;
   margin-bottom: 15px;
 }
 
+.edit-checkbox-group label,
 .checkbox-group label {
   margin-left: 5px;
   color: #333;

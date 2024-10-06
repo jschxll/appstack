@@ -9,4 +9,4 @@ class Application(models.Model):
     use_reverse_proxy = models.BooleanField(default=False)
 
     def __str__(self) -> str:
-        return f"name={self.name} https={self.https} ip={self.ip_address}:{self.port} icon_path={self.icon}"
+        return f"name={self.name} https={self.https} use_reverse_proxy={self.use_reverse_proxy} ip={self.ip_address} port={self.port} icon_path={self.icon}"

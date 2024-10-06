@@ -1,0 +1,74 @@
+{% load static %}
+
+<div id="edit-application-container-{{ app.name }}" class="edit-application-container">
+  <div id="application-header">
+    <h3>Edit {{ app.name }}</h3>
+    <img
+      class="edit-close-button"
+      src="{% static 'img/close_button.svg' %}"
+      width="24px"
+      height="24px"
+      onclick="toggleEditAppWindow('{{ app.name }}')"
+    />
+  </div>
+
+  <form class="input-fields-application">
+    <div class="form-group textfield-group">
+      <label id="app-name-label" for="application_name">Application Name</label>
+      <input
+        class="edit-application-form-{{ app.name }}"
+        id="edited_application_name"
+        type="text"
+        placeholder="Enter application name"
+        name="application-name"
+      />
+    </div>
+
+    <div class="form-group textfield-group">
+      <label id="app-host-label" for="application_host"
+        >IP Address and Port</label
+      >
+      <input
+        class="edit-application-form-{{ app.name }}"
+        id="edited_application_host"
+        type="text"
+        placeholder="IP-Address:Port"
+      />
+    </div>
+    <div class="form-group edit-checkbox-group">
+      <input
+        type="checkbox"
+        class="edited-checkbox-{{ app.name }}"
+        id="edited_https"
+        name="https_checkbox"
+      />
+      <label for="https_checkbox">HTTPS</label>
+    </div>
+
+    <!-- TODO: Add image view -->
+    <div class="form-group">
+      <label for="application_icon">Application Icon</label>
+      <input
+        id="edited_application_icon-{{ app.name }}"
+        type="file"
+        accept=".jpg, .png, .svg"
+      />
+    </div>
+
+    <div class="form-group edit-checkbox-group">
+      <input
+        type="checkbox"
+        class="edited-checkbox-{{ app.name }}"
+        id="edit_use_reverse_proxy"
+        name="reverse_proxy_checkbox"
+      />
+      <label for="reverse_proxy_checkbox">Use Reverse Proxy</label>
+    </div>
+
+    <div class="form-group">
+      <button class="submit-btn" type="button" onclick="editApplication('{{ app.name }}')">
+        Submit
+      </button>
+    </div>
+  </form>
+</div>

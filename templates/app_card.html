@@ -1,5 +1,6 @@
 {% load static %}
-<li>
+
+<li id="{{ app.name }}-item">
   <div class="application-container" id="{{ app.name }}">
     <div class="app-icon-container">
       <img src="{{ app.icon }}" width="40" height="40" />
@@ -26,18 +27,20 @@
     </h3>
     {% endif %}
 
-    <div class="edit-app-section" id="dropdown-section-{{ index }}">
+    {% include 'edit_app_window.html' with app=app %}
+
+    <div class="edit-app-section" id="dropdown-section-{{ loop_index }}">
       <span
         class="edit-app-icon"
-        id="edit-app-icon-{{ index }}"
+        id="edit-app-icon-{{ loop_index }}"
         onclick="editAppSettings(this)"
       ></span>
-      <div class="dropdown-content" id="dropdown-content-{{ index }}">
+      <div class="dropdown-content" id="dropdown-content-{{ loop_index }}">
         <ul>
           <li
             title="Edit application"
             id="edit-app-item"
-            onclick="toggleApplicationWindow()"
+            onclick="toggleEditAppWindow('{{ app.name }}')"
           >
             <img src="{% static '/img/edit_app.svg' %}" />
           </li>

@@ -54,7 +54,7 @@ class ApplicationStatusConsumer(AsyncWebsocketConsumer):
         index_page_status = text_data_json["status"]
 
         if index_page_status == 1:
-            await self.send_statuses()
+            await self.send_statuses(None)
     
     @sync_to_async
     def get_applications(self):
@@ -83,7 +83,7 @@ class ApplicationStatusConsumer(AsyncWebsocketConsumer):
         except:
             return False
     
-    async def send_statuses(self):
+    async def send_statuses(self, event):
         apps_with_status = await self.get_applications_with_status()
         await self.send(text_data=json.dumps(apps_with_status))
 

@@ -49,6 +49,40 @@ def get_host_ip():
     except socket.gaierror:
         print(socket.gaierror)
 
+def save_app(new_app, icon):
+    already_exist_msg = {"status": "success", "affected_properties": []}
+
+    if Application.objects.filter(name=new_app.name).exists():
+        already_exist_msg["affected_properties"].append("app.name")
+    if Application.objects.filter(port=new_app.port).exists():
+        already_exist_msg["affected_properties"].append("app.port")
+
+    if already_exist_msg["affected_properties"]:
+        print(already_exist_msg)
+        already_exist_msg["status"] = "already exist"
+        return JsonResponse(already_exist_msg)
+
+    fs = FileSystemStorage()
+    file_name = fs.save(icon.name, icon)
+    file_url = fs.url(file_name)
+    new_app.icon = file_url
+
+    new_app.save()
+    already_exist_msg["html"] = send_app_props(new_app)
+    return JsonResponse(already_exist_msg)
+
+def send_app_props(app):
+    apps_in_db = len(Application.objects.values())
+    rendered_html = render_to_string("app_card.html", {"app": app, "loop_index": apps_in_db})
+    channel_layer = get_channel_layer()
+    async_to_sync(channel_layer.group_send)(
+        "application_status", 
+        {
+            "type": "send_statuses",
+        }
+    )
+    return rendered_html
+
 @require_POST
 def upload_icon(request):
     if request.FILES["application_icon"]:
@@ -58,9 +92,6 @@ def upload_icon(request):
 
         # store icon in filesystem
         uploaded_file = request.FILES["application_icon"]
-        fs = FileSystemStorage()
-        file_name = fs.save(uploaded_file.name, uploaded_file)
-        file_url = fs.url(file_name)
 
         # divide port from ip address
         ip_address, port = str(host).split(":")
@@ -70,11 +101,7 @@ def upload_icon(request):
 
         https = convert_to_bool(request_data.get("https"))
         use_reverse_proxy = convert_to_bool(request_data.get("use_reverse_proxy"))
+        app = Application(name=name, ip_address=ip_address, port=port, icon=None, https=https, use_reverse_proxy=use_reverse_proxy)
 
-        # Save new application to db
-        app = Application(name=name, ip_address=ip_address, port=port, icon=file_url, https=https, use_reverse_proxy=use_reverse_proxy)
-        app.save()
-        
-        rendered_html = render_to_string("app_card.html", {"app": app})
-        return JsonResponse({"html": rendered_html})
-    return JsonResponse({"error": "Invalid request. Only POST requests are possible"}, status=400)
+        # Save new application to db, if it's not already exists
+        return save_app(app, uploaded_file)

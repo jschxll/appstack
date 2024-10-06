@@ -24,7 +24,7 @@
 
       <form class="input-fields-application">
         <div class="form-group textfield-group">
-          <label for="application_name">Application Name</label>
+          <label id="app-name-label" for="application_name">Application Name</label>
           <input
             class="application-form"
             id="application_name"
@@ -36,7 +36,7 @@
         </div>
 
         <div class="form-group textfield-group">
-          <label for="application_host">IP Address and Port</label>
+          <label id="app-host-label" for="application_host">IP Address and Port</label>
           <input
             class="application-form"
             id="application_host"
@@ -142,8 +142,8 @@
       <section class="application-section">
         {% if applications %}
         <ul>
-          {% for app in applications %} 
-            {% include 'app_card.html' with app=app index=forloop.counter %} 
+          {% for app in applications %}
+            {% include 'app_card.html' with app=app loop_index=forloop.counter %}
           {% endfor %}
         </ul>
         {% else %}

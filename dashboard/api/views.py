@@ -7,7 +7,7 @@ from django.core.files.storage import FileSystemStorage
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 import json
-from homeserver.settings import MEDIA_ROOT
+from base.settings import MEDIA_ROOT
 
 @require_http_methods(["PUT"])
 def delete_application(request):
@@ -36,5 +36,22 @@ def delete_application(request):
          return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
 @require_GET
-def get_applications(request):
-    return JsonResponse({"status": "success"})
+def get_application(request):
+    app_name = request.GET.get("application")
+    if app_name:
+        try:
+            app = Application.objects.get(name=app_name)
+            return JsonResponse({
+                "app_name": app.name,
+                "app_host": f"{app.ip_address}:{app.port}",
+                "https": app.https,
+                "use_reverse_proxy": app.use_reverse_proxy
+            })
+        except Application.DoesNotExist:
+            return JsonResponse({"error": "Application not found."}, status=404)
+    return JsonResponse({"error": "Application name not provided."}, status=400)
+
+@require_http_methods(["PUT"])
+def edit_application(request):
+    print(request.body)
+    return JsonResponse({"sent_json": "ok"})
