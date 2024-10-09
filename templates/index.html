@@ -61,9 +61,12 @@
             id="application_icon"
             type="file"
             accept=".jpg, .png, .svg"
+            onchange="previewIcon(null)"
             required
           />
         </div>
+
+        <img id="new-app-icon-preview" width="50" height="50" style="display: none;" />
 
         <div class="form-group checkbox-group">
           <input

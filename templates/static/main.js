@@ -74,9 +74,7 @@ function addNewApplicationToDOM(html) {
     appSectionUl = document.createElement("ul");
     appSection.appendChild(appSectionUl);
   }
-  //const newApp = document.createElement("li");
   appSectionUl.innerHTML += html;
-  //appSectionUl.appendChild(newApp);
 }
 
 async function uploadApplicationProps(event) {
@@ -167,8 +165,12 @@ async function uploadApplicationProps(event) {
 
 function toggleApplicationWindow() {
   let settingsLink = document.getElementById("new-application-container");
-  if (settingsLink.style.display == "flex") settingsLink.style.display = "none";
-  else settingsLink.style.display = "flex";
+  if (settingsLink.style.display == "flex") {
+    settingsLink.style.display = "none";
+    document.getElementById("new-app-icon-preview").style.display = "none";
+  } else {
+    settingsLink.style.display = "flex";
+  }
 }
 
 async function queryApplication(appName) {
@@ -177,15 +179,27 @@ async function queryApplication(appName) {
     alert("This hasn't worked. Please check your Internet connection!");
     return;
   }
-
-  console.log(response["app_name"]);
   document.getElementsByClassName(`edit-application-form-${appName}`)[0].value = response["app_name"];
   document.getElementsByClassName(`edit-application-form-${appName}`)[1].value = response["app_host"];
   document.getElementsByClassName(`edited-checkbox-${appName}`)[0].checked = response["https"];
   document.getElementsByClassName(`edited-checkbox-${appName}`)[1].checked = response["use_reverse_proxy"];
+
+  await fetch(`${response["icon"]}`, {
+    method: "GET",
+    headers: {
+      "X-CSRFToken": getCSRFToken(),
+    },
+  })
+  .then((response) => response.blob())
+  .then((blob) => {
+    const imgURL = URL.createObjectURL(blob);
+    document.getElementById(`${appName}-icon`).src = imgURL;
+  })
+  .catch((error) => console.error("There was a problem with the fetch operation:", error));
 }
 
-function toggleEditAppWindow(appName) {
+async function toggleEditAppWindow(appName) {
+  document.getElementById("icon-preview").style.display = "none";
   let editAppWindow = document.getElementById(`edit-application-container-${appName}`);
   if (editAppWindow.style.display == "flex") {
     editAppWindow.style.display = "none";
@@ -258,18 +272,45 @@ function deleteApplication(name) {
   appAPI.removeFromFrontend();
 }
 
+function previewIcon(appName) {
+  var preview;
+  var icon;
+
+  if (appName) {
+    preview = document.getElementById("icon-preview");
+    icon = document.getElementById(`edited_application_icon-${appName}`).files[0];
+  } else {
+    preview = document.getElementById("new-app-icon-preview");
+    icon = document.getElementById("application_icon").files[0];
+  }
+  
+  preview.style.display = "initial";
+  var reader = new FileReader();
+
+  reader.onloadend = function() {
+    preview.src = reader.result;
+  }
+
+  if (icon) 
+    reader.readAsDataURL(icon);
+  else
+    preview.src = "";
+}
+
 function editApplication(appName) {
-  var formData = new FormData();
+  let formData = new FormData();
   const editedTextField = document.getElementsByClassName(`edit-application-form-${appName}`);
   const editedIcon = document.getElementById(`edited_application_icon-${appName}`).files[0];
   const editedCheckBoxes = document.getElementsByClassName(`edited-checkbox-${appName}`);
+
+  formData.append("original_name", appName);
+
   for (let txtField of editedTextField)
     formData.append(txtField.id, txtField.value);
   for (let checkBox of editedCheckBoxes)
     formData.append(checkBox.id, checkBox.checked);
 
   formData.append("edited_icon", editedIcon);
-  console.log(formData);
   new AppAPI().sendEditRequest(formData);
 }
 
@@ -292,7 +333,7 @@ class AppAPI {
     try {
       var nameAsJson = JSON.stringify({ app_name: name });
       const response = await fetch("/api/delete_application", {
-        method: "PUT",
+        method: "DELETE",
         headers: {
           "X-CSRFToken": getCSRFToken(),
         },
@@ -328,16 +369,15 @@ class AppAPI {
   }
 
   async sendEditRequest(appForm) {
+    console.log(appForm);
     try {
       await fetch("/api/edit_application", {
-        method: "PUT",
+        method: "POST",
         headers: {
           "X-CSRFToken": getCSRFToken(),
         },
         body: appForm,
-      })
-        .then((response) => response.json())
-        .then((data) => console.log(data));
+      });
     } catch (error) {
       console.error(error);
     }

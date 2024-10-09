@@ -1,8 +1,14 @@
 {% load static %}
 
-<div id="edit-application-container-{{ app.name }}" class="edit-application-container">
+<div
+  id="edit-application-container-{{ app.name }}"
+  class="edit-application-container"
+>
   <div id="application-header">
-    <h3>Edit {{ app.name }}</h3>
+    <h3 class="app-name-container">
+      <img id="{{ app.name }}-icon" width="40" height="40" />
+      <span>{{ app.name }}</span>
+    </h3>
     <img
       class="edit-close-button"
       src="{% static 'img/close_button.svg' %}"
@@ -16,7 +22,7 @@
     <div class="form-group textfield-group">
       <label id="app-name-label" for="application_name">Application Name</label>
       <input
-        class="edit-application-form-{{ app.name }}"
+        class="edit-application-form-{{ app.name }} edit-application-form"
         id="edited_application_name"
         type="text"
         placeholder="Enter application name"
@@ -29,7 +35,7 @@
         >IP Address and Port</label
       >
       <input
-        class="edit-application-form-{{ app.name }}"
+        class="edit-application-form-{{ app.name }} edit-application-form"
         id="edited_application_host"
         type="text"
         placeholder="IP-Address:Port"
@@ -45,15 +51,17 @@
       <label for="https_checkbox">HTTPS</label>
     </div>
 
-    <!-- TODO: Add image view -->
-    <div class="form-group">
+    <div class="form-group icon-container">
       <label for="application_icon">Application Icon</label>
       <input
         id="edited_application_icon-{{ app.name }}"
         type="file"
         accept=".jpg, .png, .svg"
+        onchange="previewIcon('{{ app.name }}')"
       />
     </div>
+
+    <img id="icon-preview" width="50" height="50" style="display: none;" />
 
     <div class="form-group edit-checkbox-group">
       <input
@@ -66,7 +74,11 @@
     </div>
 
     <div class="form-group">
-      <button class="submit-btn" type="button" onclick="editApplication('{{ app.name }}')">
+      <button
+        class="submit-btn"
+        type="button"
+        onclick="editApplication('{{ app.name }}')"
+      >
         Submit
       </button>
     </div>

@@ -179,7 +179,7 @@ main {
   border-radius: 5px;
   min-width: 300px;
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
-  z-index: 0;
+  z-index: 1;
 }
 
 .https-icon {
@@ -300,6 +300,20 @@ main {
   top: 50%;
   transform: translate(-50%, -50%);
   z-index: 2;
+}
+
+.app-name-container {
+  display: flex;
+  align-items: center;
+}
+
+.app-name-container img {
+  margin-right: 10px;
+}
+
+.icon-container {
+  display: flex;
+  align-items: center;
 }
 
 #application-header,
