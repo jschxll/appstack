@@ -56,7 +56,7 @@
         </div>
 
         <div class="form-group">
-          <label for="application_icon">Application Icon</label>
+          <label id="app-icon-label" for="application_icon">Application Icon</label>
           <input
             id="application_icon"
             type="file"
@@ -124,7 +124,6 @@
 
     <main>
       <div class="system-info-container">
-        <h3>System Information</h3>
         <div class="cpu">
           <span id="cpu-usage"></span>
           <br />
@@ -141,6 +140,8 @@
         </div>
         <span id="uptime"></span>
       </div>
+
+      {% include 'edit_app_window.html' %}
 
       <section class="application-section">
         {% if applications %}

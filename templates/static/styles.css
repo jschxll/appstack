@@ -32,7 +32,7 @@ body {
 .settings-button {
   display: inline-block;
   cursor: pointer;
-  z-index: 2;
+  z-index: 3;
 }
 
 .bar1,
@@ -86,7 +86,7 @@ body {
   width: 220px;
   background-color: var(--settings-menu-bg);
   transition: transform 0.5s ease;
-  z-index: 2;
+  z-index: 3;
 }
 
 #settings-menu ul {
@@ -375,13 +375,18 @@ label {
   font-size: 1em;
 }
 
+#edited_application_host.error,
+#edited_application_name.error,
 #application_name.error,
 #application_host.error {
   outline: none;
   border-color: #f31717;
 }
 
-.textfield-group label.error {
+.textfield-group label.error,
+.edit-textfield-group label.error,
+#app-icon-label.error,
+#edit-app-icon-label.error {
   color: #f31717;
 }
 

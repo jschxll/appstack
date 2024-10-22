@@ -27,8 +27,6 @@
     </h3>
     {% endif %}
 
-    {% include 'edit_app_window.html' with app=app %}
-
     <div class="edit-app-section" id="dropdown-section-{{ loop_index }}">
       <span
         class="edit-app-icon"
@@ -39,8 +37,8 @@
         <ul>
           <li
             title="Edit application"
-            id="edit-app-item"
-            onclick="toggleEditAppWindow('{{ app.name }}')"
+            id="edit-app-item-{{ app.name }}"
+            onclick="toggleEditAppWindow(this)"
           >
             <img src="{% static '/img/edit_app.svg' %}" />
           </li>

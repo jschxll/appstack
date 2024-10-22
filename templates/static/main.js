@@ -1,5 +1,136 @@
 "use strict";
 
+class FormHelper {
+  constructor(nameField, appNameLabel, hostField, appHostLabel, iconLabel) {
+    this.nameField = nameField;
+    this.appNameLabel = appNameLabel;
+    this.hostField = hostField;
+    this.appHostLabel = appHostLabel;
+    this.iconLabel = iconLabel;
+  }
+
+  clearErrors() {
+    if (this.nameField.classList.contains("error")) {
+      this.nameField.classList.remove("error");
+      this.appNameLabel.classList.remove("error");
+      this.appNameLabel.innerText = "Application Name";
+    }
+
+    if (this.hostField.classList.contains("error")) {
+      this.hostField.classList.remove("error");
+      this.appHostLabel.classList.remove("error");
+      this.appHostLabel.innerText = "IP-Address:Port";
+    }
+
+    if (this.iconLabel.classList.contains("error")) {
+      this.iconLabel.classList.remove("error");
+      this.iconLabel.innerText = "Application Icon";
+    }
+  }
+
+  applyErrors(affectedProps, errorMsgs) {
+    affectedProps.forEach((prop) => {
+      if (prop === "app.name" && !this.nameField.classList.contains("error")) {
+        this.nameField.classList.toggle("error");
+        this.appNameLabel.classList.toggle("error");
+        this.appNameLabel.innerText =
+          errorMsgs != null ? errorMsgs[0] : "This name already exists!";
+      }
+
+      if (prop === "app.host" && !this.hostField.classList.contains("error")) {
+        this.hostField.classList.toggle("error");
+        this.appHostLabel.classList.toggle("error");
+        this.appHostLabel.innerText =
+          errorMsgs != null ? errorMsgs[1] : "This host already exists!";
+      }
+
+      if (prop == "app.icon" && !this.iconLabel.classList.contains("error")) {
+        this.iconLabel.classList.toggle("error");
+        this.iconLabel.innerText = "An icon is missing";
+      }
+    });
+  }
+
+  clearFields() {
+    this.hostField.value = "";
+    this.nameField.value = "";
+  }
+}
+
+class AppAPI {
+  removeFromFrontend() {
+    const updateAppsSocket = new WebSocket(
+      `ws://${window.location.host}/ws/update_applications/`
+    );
+    updateAppsSocket.onmessage = (e) => {
+      const message = JSON.parse(e.data);
+      if (message.type == "delete_app") {
+        const appName = message.app_name;
+        const appElement = document.getElementById(`${appName}-item`);
+        if (appElement) appElement.remove();
+      }
+    };
+  }
+
+  async sendDeleteRequest(name) {
+    try {
+      var nameAsJson = JSON.stringify({ app_name: name });
+      const response = await fetch("/api/delete_application", {
+        method: "DELETE",
+        headers: {
+          "X-CSRFToken": getCSRFToken(),
+        },
+        body: nameAsJson,
+      });
+
+      if (!response.ok) {
+        alert(`Something went wrong. Error:${response.status}`);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  async getApplication(appName) {
+    try {
+      const response = await fetch(
+        `/api/get_application?application=${encodeURIComponent(appName)}`,
+        {
+          method: "GET",
+          headers: {
+            "X-CSRFToken": getCSRFToken(),
+          },
+        }
+      );
+
+      if (response.ok) {
+        return response.json();
+      } else {
+        console.error("Failed to fetch:", response.status, response.statusText);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+    return null;
+  }
+
+  async sendEditRequest(appForm) {
+    console.log(appForm);
+    try {
+      let response = await fetch("/api/edit_application", {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": getCSRFToken(),
+        },
+        body: appForm,
+      });
+      return response.json();
+    } catch (error) {
+      console.error(error);
+    }
+  }
+}
+
 function toggleSettingsMenu(button) {
   const menu = document.getElementById("settings-menu");
   menu.classList.toggle("show");
@@ -79,11 +210,11 @@ function addNewApplicationToDOM(html) {
 
 async function uploadApplicationProps(event) {
   event.preventDefault();
-
   const nameField = document.getElementById("application_name");
   const appNameLabel = document.getElementById("app-name-label");
   const hostField = document.getElementById("application_host");
   const appHostLabel = document.getElementById("app-host-label");
+  const iconLabel = document.getElementById("app-icon-label");
 
   let formData = new FormData();
   const applicationProps = document.getElementsByClassName("application-form");
@@ -91,10 +222,7 @@ async function uploadApplicationProps(event) {
   const csrfToken = getCSRFToken();
 
   for (let prop of applicationProps) formData.append(prop.id, prop.value);
-  for (let cb of checkBoxData) {
-    console.log(cb.id, cb.checked);
-    formData.append(cb.id, cb.checked);
-  }
+  for (let cb of checkBoxData) formData.append(cb.id, cb.checked);
   formData.append(
     "application_icon",
     document.getElementById("application_icon").files[0]
@@ -110,64 +238,66 @@ async function uploadApplicationProps(event) {
     });
     const data = await response.json();
 
-    if (data.status == "success") {
-      addNewApplicationToDOM(data.html);
-      document.getElementById("new-application-container").style.display =
-        "none";
+    const formHelper = new FormHelper(
+      nameField,
+      appNameLabel,
+      hostField,
+      appHostLabel,
+      iconLabel
+    );
 
-      if (
-        nameField.classList.contains("error") ||
-        hostField.classList.contains("error")
-      ) {
-        nameField.classList.remove("error");
-        appNameLabel.classList.remove("error");
-        appNameLabel.innerText = "Application Name";
-        hostField.classList.remove("error");
-        appHostLabel.classList.remove("error");
-        appHostLabel.innerText = "IP Address:Port";
-      }
-    } else if (data.status == "already exist") {
-      if (
-        nameField.classList.contains("error") ||
-        hostField.classList.contains("error")
-      ) {
-        nameField.classList.remove("error");
-        appNameLabel.classList.remove("error");
-        appNameLabel.innerText = "Application Name";
-        hostField.classList.remove("error");
-        appHostLabel.classList.remove("error");
-        appHostLabel.innerText = "IP Address:Port";
-      }
-      const affectedProps = data["affected_properties"];
-      Array.from(affectedProps).forEach((prop) => {
-        if (prop == "app.name") {
-          if (!nameField.classList.contains("error") 
-            && !appNameLabel.classList.contains("error")) {
-            nameField.classList.toggle("error");
-            appNameLabel.classList.toggle("error");
-            appNameLabel.innerText = "This name already exists!";
-          }
-        }
-        if (prop == "app.port") {
-          if (!hostField.classList.contains("error") 
-            && !appHostLabel.classList.contains("error")) {
-            hostField.classList.toggle("error");
-            appHostLabel.classList.toggle("error");
-            appHostLabel.innerText = "This port already exists!";
-          }
-        }
-      });
-    }
+    validateJsonResponse(data, formHelper);
   } catch (error) {
     console.log(error);
   }
 }
 
+function validateJsonResponse(data, formHelper) {
+  switch (data.status) {
+    case "success":
+      addNewApplicationToDOM(data.html);
+      document.getElementById("new-application-container").style.display = "none";
+      formHelper.clearErrors();
+      break;
+    case "ApplicationAlreadyExists":
+      formHelper.clearErrors();
+      formHelper.applyErrors(data["affected_properties"], null);
+      break;
+    case "InvalidIPv4AddressError":
+      formHelper.clearErrors();
+      formHelper.applyErrors(data["affected_properties"], [null, data["cause"]]);
+      break;
+    case "IconMissing":
+      formHelper.clearErrors();
+      formHelper.applyErrors(data["affected_properties"], null);
+      break;
+    case "EmptyField":
+      formHelper.clearErrors();
+      formHelper.applyErrors(data["affected_properties"], ["This field can't be empty!", "This field can't be empty!"]);
+      break;
+  }
+}
+
 function toggleApplicationWindow() {
+  const nameField = document.getElementById("application_name");
+  const appNameLabel = document.getElementById("app-name-label");
+  const hostField = document.getElementById("application_host");
+  const appHostLabel = document.getElementById("app-host-label");
+  const iconLabel = document.getElementById("app-icon-label");
+
   let settingsLink = document.getElementById("new-application-container");
   if (settingsLink.style.display == "flex") {
     settingsLink.style.display = "none";
     document.getElementById("new-app-icon-preview").style.display = "none";
+    const formHelper = new FormHelper(
+      nameField,
+      appNameLabel,
+      hostField,
+      appHostLabel,
+      iconLabel
+    );
+    formHelper.clearErrors();
+    formHelper.clearFields();
   } else {
     settingsLink.style.display = "flex";
   }
@@ -179,10 +309,15 @@ async function queryApplication(appName) {
     alert("This hasn't worked. Please check your Internet connection!");
     return;
   }
-  document.getElementsByClassName(`edit-application-form-${appName}`)[0].value = response["app_name"];
-  document.getElementsByClassName(`edit-application-form-${appName}`)[1].value = response["app_host"];
-  document.getElementsByClassName(`edited-checkbox-${appName}`)[0].checked = response["https"];
-  document.getElementsByClassName(`edited-checkbox-${appName}`)[1].checked = response["use_reverse_proxy"];
+  document.getElementById("app-name-header").innerText = response["app_name"];
+  document.getElementsByClassName("edit-application-form")[0].value =
+    response["app_name"];
+  document.getElementsByClassName("edit-application-form")[1].value =
+    response["app_host"];
+  document.getElementsByClassName("edited-checkbox")[0].checked =
+    response["https"];
+  document.getElementsByClassName("edited-checkbox")[1].checked =
+    response["use_reverse_proxy"];
 
   await fetch(`${response["icon"]}`, {
     method: "GET",
@@ -190,23 +325,97 @@ async function queryApplication(appName) {
       "X-CSRFToken": getCSRFToken(),
     },
   })
-  .then((response) => response.blob())
-  .then((blob) => {
-    const imgURL = URL.createObjectURL(blob);
-    document.getElementById(`${appName}-icon`).src = imgURL;
-  })
-  .catch((error) => console.error("There was a problem with the fetch operation:", error));
+    .then((response) => response.blob())
+    .then((blob) => {
+      const imgURL = URL.createObjectURL(blob);
+      document.getElementById("icon").src = imgURL;
+    })
+    .catch((error) =>
+      console.error("There was a problem with the fetch operation:", error)
+    );
 }
 
-async function toggleEditAppWindow(appName) {
+function previewIcon(appName) {
+  var preview;
+  var icon;
+  if (appName) {
+    preview = document.getElementById("icon-preview");
+    icon = document.getElementById(`edited_application_icon`).files[0];
+  } else {
+    preview = document.getElementById("new-app-icon-preview");
+    icon = document.getElementById("application_icon").files[0];
+  }
+  preview.style.display = "initial";
+  var reader = new FileReader();
+
+  reader.onloadend = function () {
+    preview.src = reader.result;
+  };
+
+  if (icon) reader.readAsDataURL(icon);
+  else preview.src = "";
+}
+
+function elWithID(elName) {
+  return document.getElementById(elName);
+}
+
+async function editApplication(appName) {
+  let formData = new FormData();
+  const editedTextField = document.getElementsByClassName(
+    `edit-application-form`
+  );
+  const editedIcon = document.getElementById(`edited_application_icon`)
+    .files[0];
+  const editedCheckBoxes = document.getElementsByClassName(`edited-checkbox`);
+
+  formData.append("original_name", appName);
+
+  for (let txtField of editedTextField)
+    formData.append(txtField.id, txtField.value);
+  for (let checkBox of editedCheckBoxes)
+    formData.append(checkBox.id, checkBox.checked);
+
+  formData.append("edited_icon", editedIcon);
+  let response = await new AppAPI().sendEditRequest(formData);
+  const formHelper = new FormHelper(
+    elWithID("edited_application_name"),
+    elWithID("edit-app-name-label"),
+    elWithID("edited_application_host"),
+    elWithID("edit-app-host-label"),
+    elWithID("edit-app-icon-label")
+  );
+  validateJsonResponse(response, formHelper);
+}
+
+function toggleEditAppWindow(item) {
   document.getElementById("icon-preview").style.display = "none";
-  let editAppWindow = document.getElementById(`edit-application-container-${appName}`);
+
+  let itemName = String(item.id).split("-")[3];
+  let editAppWindow = document.getElementsByClassName(`edit-application-container`)[0];
   if (editAppWindow.style.display == "flex") {
     editAppWindow.style.display = "none";
   } else {
-    queryApplication(appName);
+    new FormHelper(
+      elWithID("edited_application_name"),
+      elWithID("edit-app-name-label"),
+      elWithID("edited_application_host"),
+      elWithID("edit-app-host-label"),
+      elWithID("edit-app-icon-label")
+    ).clearErrors();
+    queryApplication(itemName);
     editAppWindow.style.display = "flex";
   }
+
+  // Show new icon in preview
+  document.getElementById("edited_application_icon").onchange = function () {
+    previewIcon(itemName);
+  };
+
+  // Send new app properties to endpoint
+  document.getElementById("edit-submit-btn").onclick = function () {
+    editApplication(itemName);
+  };
 }
 
 function changeTheme(button) {
@@ -235,7 +444,9 @@ document.addEventListener("DOMContentLoaded", () => {
   // Each application container gets a status light for the online status of their application
   appStatusSocket.onmessage = (e) => {
     const data = JSON.parse(e.data);
-    Array.from(document.getElementsByClassName("application-container")).forEach((app, index) => {
+    Array.from(
+      document.getElementsByClassName("application-container")
+    ).forEach((app, index) => {
       const statusDiv = document.createElement("div");
       statusDiv.className = "status-div";
 
@@ -270,116 +481,4 @@ function deleteApplication(name) {
   const appAPI = new AppAPI();
   appAPI.sendDeleteRequest(name);
   appAPI.removeFromFrontend();
-}
-
-function previewIcon(appName) {
-  var preview;
-  var icon;
-
-  if (appName) {
-    preview = document.getElementById("icon-preview");
-    icon = document.getElementById(`edited_application_icon-${appName}`).files[0];
-  } else {
-    preview = document.getElementById("new-app-icon-preview");
-    icon = document.getElementById("application_icon").files[0];
-  }
-  
-  preview.style.display = "initial";
-  var reader = new FileReader();
-
-  reader.onloadend = function() {
-    preview.src = reader.result;
-  }
-
-  if (icon) 
-    reader.readAsDataURL(icon);
-  else
-    preview.src = "";
-}
-
-function editApplication(appName) {
-  let formData = new FormData();
-  const editedTextField = document.getElementsByClassName(`edit-application-form-${appName}`);
-  const editedIcon = document.getElementById(`edited_application_icon-${appName}`).files[0];
-  const editedCheckBoxes = document.getElementsByClassName(`edited-checkbox-${appName}`);
-
-  formData.append("original_name", appName);
-
-  for (let txtField of editedTextField)
-    formData.append(txtField.id, txtField.value);
-  for (let checkBox of editedCheckBoxes)
-    formData.append(checkBox.id, checkBox.checked);
-
-  formData.append("edited_icon", editedIcon);
-  new AppAPI().sendEditRequest(formData);
-}
-
-class AppAPI {
-  removeFromFrontend() {
-    const updateAppsSocket = new WebSocket(
-      `ws://${window.location.host}/ws/update_applications/`
-    );
-    updateAppsSocket.onmessage = (e) => {
-      const message = JSON.parse(e.data);
-      if (message.type == "delete_app") {
-        const appName = message.app_name;
-        const appElement = document.getElementById(`${appName}-item`);
-        if (appElement) appElement.remove();
-      }
-    };
-  }
-
-  async sendDeleteRequest(name) {
-    try {
-      var nameAsJson = JSON.stringify({ app_name: name });
-      const response = await fetch("/api/delete_application", {
-        method: "DELETE",
-        headers: {
-          "X-CSRFToken": getCSRFToken(),
-        },
-        body: nameAsJson,
-      });
-
-      if (!response.ok) {
-        alert(`Something went wrong. Error:${response.status}`);
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  }
-
-  async getApplication(appName) {
-    try {
-      const response = await fetch(`/api/get_application?application=${encodeURIComponent(appName)}`, {
-        method: "GET",
-        headers: {
-          "X-CSRFToken": getCSRFToken(),
-        }
-      });
-      
-      if (response.ok) {
-        return response.json();
-      } else {
-        console.error('Failed to fetch:', response.status, response.statusText);
-      }
-    } catch (error) {
-      console.error(error);
-    }
-    return null;
-  }
-
-  async sendEditRequest(appForm) {
-    console.log(appForm);
-    try {
-      await fetch("/api/edit_application", {
-        method: "POST",
-        headers: {
-          "X-CSRFToken": getCSRFToken(),
-        },
-        body: appForm,
-      });
-    } catch (error) {
-      console.error(error);
-    }
-  }
 }

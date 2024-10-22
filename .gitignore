@@ -5,3 +5,4 @@ dashboard.tar
 /db.sqlite3
 pyvenv.cfg
 /Lib
+.env
