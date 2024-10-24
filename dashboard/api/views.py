@@ -59,12 +59,17 @@ def edit_application(request):
     new_https_conf = convert_to_bool(request.POST.get("edited_https"))
     new_reverse_proxy_conf = convert_to_bool(request.POST.get("edited_use_reverse_proxy"))
 
+    to_edit_app = Application.objects.get(name=original_name)
+    if new_name == "":
+        new_name = to_edit_app.name
+    if new_host == "":
+        new_host = f"{to_edit_app.ip_address}:{to_edit_app.port}"
+
     if not is_valid_ip(new_host):
         return JsonResponse({"status": "InvalidIPv4AddressError", "cause": "Given string is not a valid ip address", "affected_properties": ["app.host"]})
     
     ip_addr, port = str(new_host).split(":")
 
-    to_edit_app = Application.objects.get(name=original_name)
     to_edit_app.name = new_name
     to_edit_app.ip_address = ip_addr
     to_edit_app.port = port
@@ -84,4 +89,4 @@ def edit_application(request):
     
     to_edit_app.save()
     
-    return JsonResponse({"sent_json": "ok"})
+    return JsonResponse({"status": "success", "edited_app": to_edit_app.name})

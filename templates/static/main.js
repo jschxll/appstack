@@ -255,6 +255,10 @@ async function uploadApplicationProps(event) {
 function validateJsonResponse(data, formHelper) {
   switch (data.status) {
     case "success":
+      if (data.edited_app) {
+        document.getElementsByClassName("edit-application-container")[0].style.display = "none";
+        break;
+      }
       addNewApplicationToDOM(data.html);
       document.getElementById("new-application-container").style.display = "none";
       formHelper.clearErrors();
